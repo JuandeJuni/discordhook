@@ -123,6 +123,7 @@ func (wa *WebhookAPI) Execute(ctx context.Context, wep *WebhookExecuteParams, fi
 			time.Sleep(time.Second * 5)
 			wa.Execute(ctx, wep, file, filename)
 		}
+
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return nil, err
