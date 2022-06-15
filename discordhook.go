@@ -6,10 +6,12 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/andersfylling/snowflake"
 	jsoniter "github.com/json-iterator/go"
@@ -116,6 +118,11 @@ func (wa *WebhookAPI) Execute(ctx context.Context, wep *WebhookExecuteParams, fi
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 && res.StatusCode != 201 && res.StatusCode != 204 {
+		if res.StatusCode == 429 {
+			log.Println("Rate limit reached")
+			time.Sleep(time.Second * 5)
+			wa.Execute(ctx, wep, file, filename)
+		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return nil, err
