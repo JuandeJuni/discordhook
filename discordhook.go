@@ -3,7 +3,9 @@ package discordhook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,6 +18,12 @@ import (
 	"github.com/andersfylling/snowflake"
 	jsoniter "github.com/json-iterator/go"
 )
+
+type RateLimit struct {
+	Global     bool   `json:"global"`
+	Message    string `json:"message"`
+	RetryAfter int    `json:"retry_after"`
+}
 
 // WebhookAPI - for those, who wants to use single webhook url several times
 type WebhookAPI struct {
@@ -116,14 +124,20 @@ func (wa *WebhookAPI) Execute(ctx context.Context, wep *WebhookExecuteParams, fi
 	}
 
 	defer res.Body.Close()
+	bodyText, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	if res.StatusCode != 200 && res.StatusCode != 201 && res.StatusCode != 204 {
 		if res.StatusCode == 429 {
-			log.Println("Rate limit reached")
-			time.Sleep(time.Second * 5)
+			var result RateLimit
+			json.Unmarshal([]byte(bodyText), &result)
+			rtime := result.RetryAfter + 150
+			time.Sleep(time.Duration(rtime) * time.Millisecond)
 			wa.Execute(ctx, wep, file, filename)
+			log.Println("Sleeping " + fmt.Sprint(rtime) + "miliseconds")
 		}
-
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return nil, err
