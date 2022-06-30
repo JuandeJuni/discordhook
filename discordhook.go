@@ -136,7 +136,7 @@ func (wa *WebhookAPI) Execute(ctx context.Context, wep *WebhookExecuteParams, fi
 			rtime := result.RetryAfter + 150
 			time.Sleep(time.Duration(rtime) * time.Millisecond)
 			wa.Execute(ctx, wep, file, filename)
-			log.Println("Sleeping " + fmt.Sprint(rtime) + "miliseconds")
+			log.Println("Sleeping " + fmt.Sprint(rtime) + " miliseconds")
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
