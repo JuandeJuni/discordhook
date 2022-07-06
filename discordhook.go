@@ -134,9 +134,10 @@ func (wa *WebhookAPI) Execute(ctx context.Context, wep *WebhookExecuteParams, fi
 			var result RateLimit
 			json.Unmarshal([]byte(bodyText), &result)
 			rtime := result.RetryAfter + 150
+			log.Println("Sleeping " + fmt.Sprint(rtime) + " miliseconds")
 			time.Sleep(time.Duration(rtime) * time.Millisecond)
 			wa.Execute(ctx, wep, file, filename)
-			log.Println("Sleeping " + fmt.Sprint(rtime) + " miliseconds")
+
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
